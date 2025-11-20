@@ -1,33 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+
+import { useEffect, useState } from 'react'
 import './App.css'
+import Counter from './components/counter/Counter'
+import SearchForm from './components/SerchForm'
+import type { MoviesResponse } from './types/Types'
+import GenresList from './components/genres/GenresList'
+
 
 function App() {
-  const [count, setCount] = useState(0)
+const [selectedGenre, setSelectedGenre] = useState<string>('All');
+const [uniqueGenres, setUniqueGenres] = useState<string[]>([]);
+  const onSelect = (selectedGenre: string) => {
+    setSelectedGenre(selectedGenre);
+    console.log("Selected genre:", selectedGenre)
+  } 
+
+
+  const onSearch = async(query: string) => {
+    try {
+      const movies = await fetch(`http://localhost:4000/movies`).then(res=> res.json())
+
+      const searchedMovie = movies.data.filter((movie: { title: string }) =>
+        movie.title.toLowerCase().includes(query.toLowerCase())
+      )
+      console.log("Fetched Movies:", movies)
+      console.log("Searched Movie:", searchedMovie)
+    } catch (error) {
+      console.error("Error fetching movies:", error)
+    }
+  }
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      const movies:MoviesResponse = await fetch('http://localhost:4000/movies?limit=3000').then(res => res.json());
+      const genres: string[] = movies.data.map((movie: { genres:  string[] }) => movie.genres).flat();
+      const unique: string[] = Array.from(new Set(genres)) || [];
+      setUniqueGenres(unique);
+      console.log('Genres fetched', unique);
+    };
+
+    fetchGenres();
+  }, [])
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <span>COUNTER</span>
+     <Counter initialValue={0} />
+     <span>SEARCH</span>
+     <SearchForm initialQuery="" onSearch={onSearch} />
+     <span>GENRES</span>
+     <GenresList genreList={['All', ...uniqueGenres]} selectedGenre={selectedGenre} onSelect={onSelect} />
     </>
   )
 }
