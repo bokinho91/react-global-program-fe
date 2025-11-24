@@ -1,0 +1,33 @@
+.movie-card-list{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.movie-card {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  border-radius: 8px;
+  margin: 16px;
+  max-width: 200px;
+  text-align: center;
+}
+
+.movie-card div 
+  { 
+    height: '300px';
+    overflow: 'hidden' 
+  }
+
+.movie-card img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+}
+
+.movie-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%
+}
