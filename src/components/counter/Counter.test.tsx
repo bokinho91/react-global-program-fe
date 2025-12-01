@@ -16,7 +16,8 @@ describe('counter', () => {
   });
   test('test increment', async () => {
     
-    const incrementButton = screen.getByText('Increment');
+    const incrementButton = screen.getByRole('button', { name: /increment/i });
+
     await user.click(incrementButton);
     
     expect(screen.getByText("1")).toBeInTheDocument();
@@ -24,7 +25,7 @@ describe('counter', () => {
 
   test('test decrement', async () => {
     
-    const decrementButton = screen.getByText('Decrement');
+    const decrementButton = screen.getByRole('button', { name: /decrement/i });
     await user.click(decrementButton);
     
     expect(screen.getByText("-1")).toBeInTheDocument();
