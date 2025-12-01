@@ -15,10 +15,10 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
         />
       </div>
       <h3>{movie.title}</h3>
-      <div className="movie-info">
+      <p className="movie-info">
         <span>{movie.genres.join(", ")}</span>
         <span>{new Date(movie.release_date).getFullYear()}</span>
-      </div>
+      </p>
 
     </div>
   );
