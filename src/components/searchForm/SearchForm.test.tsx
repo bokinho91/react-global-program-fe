@@ -2,7 +2,7 @@ import { describe, expect, test } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import SearchForm from './SerchForm';
+import SearchForm from './SearchForm';
 
 describe('search form', () => {
   test('should render input with initial value from props', () => {
