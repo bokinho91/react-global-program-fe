@@ -6,6 +6,7 @@ interface MovieCardProps {
   movie: Movie;
   onEdit?: (movie: Movie) => void;
   onDelete?: (movie: Movie) => void;
+  onSelectMovie?: (movie: Movie) => void;
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie, onEdit, onDelete, onSelectMovie }) => {
@@ -28,7 +29,8 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onEdit, onDelete, onSelect
     };
   }, [isMenuOpen]);
 
-  const handleToggleMenu = () => {
+  const handleToggleMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsMenuOpen(!isMenuOpen);
   };
 
@@ -48,7 +50,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onEdit, onDelete, onSelect
 
   return (
     <div className="movie-card" onClick={() => onSelectMovie && onSelectMovie(movie)}>
-      <div className="movie-menu-container" ref={menuRef}>
+      <div className="movie-menu-container" ref={menuRef} onClick={(e)=> e.stopPropagation()}>
         <button 
           className="movie-dots-menu" 
           onClick={handleToggleMenu}
