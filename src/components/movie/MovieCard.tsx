@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import type { Movie } from "../../types/Types";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import ImageWithFallback from "../../utilities/ImageWithFallback";
 
 interface MovieCardProps {
   movie: Movie;
@@ -72,10 +73,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onEdit, onDelete, onSelect
       </div>
 
       <div>
-        <img 
-          src={movie.poster_path} 
-          alt={movie.title}
-        />
+        {<ImageWithFallback src={movie.poster_path} alt={movie.title} />}
       </div>
       <h3>{movie.title}</h3>
       <p className="movie-card-genres-release">
