@@ -1,7 +1,9 @@
+import React from 'react';
 import Portal from './Portal';
 import { IoMdClose } from "react-icons/io";
 
-const Dialog: React.FC<{ isOpen: boolean, onClose: () => void, title:string, children: React.ReactNode }> = ({ isOpen, title, onClose, children }) => {
+
+const Dialog = React.memo<{ isOpen: boolean, onClose: () => void, title:string, children: React.ReactNode }>(({ isOpen, title, onClose, children }) => {
   console.log("Dialog isOpen:", isOpen);
   if (!isOpen) return null;
 
@@ -16,6 +18,8 @@ const Dialog: React.FC<{ isOpen: boolean, onClose: () => void, title:string, chi
       </div>
     </Portal>
   );
-};
+});
+
+Dialog.displayName = 'Dialog';
 
 export default Dialog;

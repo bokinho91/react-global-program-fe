@@ -1,5 +1,6 @@
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef} from 'react'
+import axios from 'axios'
 import './App.css'
 import Counter from './components/counter/Counter'
 import SearchForm from './components/searchForm/SearchForm'
@@ -14,7 +15,6 @@ import Dialog from './components/dialog/Dialog'
 function App() {
 const [selectedGenre, setSelectedGenre] = useState<string>('All');
 const [uniqueGenres, setUniqueGenres] = useState<string[]>([]);
-const [movieList, setMovieList] = useState<Movie[]>([]);
 const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
 const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 const [isMovieInfoVisible, setIsMovieInfoVisible] = useState<boolean>(false);
@@ -22,6 +22,8 @@ const [sortBy, setSortBy] = useState<string>('release_date');
 const [isModalOpen, setIsModalOpen] = useState(false);
 const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
 const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+const [searchedQuery, setSearchedQuery] = useState<string>("");
+const movieInfoTargetRef = useRef<HTMLDivElement>(null);
 
 function sortMovies(movies: Movie[], sortBy: string): Movie[] {
 const sorted = [...movies];
@@ -39,14 +41,32 @@ return sorted;
 
 useEffect(() => {
   const fetchMovies = async () => {
-    const response:MoviesResponse = await fetch(`http://localhost:4000/movies`).then(res=> res.json())
+    console.log("Fetching movies with sortBy:", sortBy, "and searchedQuery:", searchedQuery, "and selectedGenre:", selectedGenre);
+    
+    const params: { [key: string]: string } = {
+      sortBy: sortBy || 'release_date'
+    };
+    
+    // If a genre is selected, filter by genre
+    if (selectedGenre !== 'All') {
+      params.filter = selectedGenre;
+      params.searchBy = 'genres';
+    }
+    
+    // If there's a search query, add it to params
+    if (searchedQuery) {
+      params.search = searchedQuery;
+      params.searchBy = 'title';
+    }
+    
+    console.log("API params:", params);
+    const response:MoviesResponse = await axios.get(`http://localhost:4000/movies`, {params}).then(res=> res.data)
     const movies:Movie[] = response.data
-    setMovieList(movies)
-    const sortedDefault = movies.sort((a, b) => new Date(b.release_date).getTime() - new Date(a.release_date).getTime());
-    setFilteredMovies(sortedDefault)
+    console.log("Received movies:", movies.length);
+    setFilteredMovies(movies)
   }
   fetchMovies();
-    }, [])
+    }, [searchedQuery,sortBy, selectedGenre])
     
   useEffect(() => {
     const fetchGenres = async () => {
@@ -65,26 +85,11 @@ useEffect(() => {
 
   const onSelect = (selectedGenre: string) => {
     setSelectedGenre(selectedGenre);
-    if (selectedGenre !== 'All') {
-      const filtered = movieList.filter((movie) =>
-        movie.genres.includes(selectedGenre)
-      );
-      setFilteredMovies(filtered);
-    } else {
-      setFilteredMovies(movieList);
-    }
+    console.log("Selected genre:", selectedGenre);
   } 
 
   const onSearch = async(query: string) => {
-    try {
-      const searchedMovies = movieList.filter((movie: { title: string }) =>
-        movie.title.toLowerCase().includes(query.toLowerCase())
-      )
-      setFilteredMovies(searchedMovies)
-      
-    } catch (error) {
-      console.error("Error fetching movies:", error)
-    }
+    setSearchedQuery(query);
   }
 
   const onEditMovie = (movie: Movie) => {
@@ -117,9 +122,24 @@ useEffect(() => {
     }
   };
 
+  const handleCloseAddModal = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleCloseEditModal = useCallback(() => {
+    setIsEditModalOpen(false);
+  }, []);
+
   const selectMovie = (movie: Movie) => {
     setSelectedMovie(movie);
     setIsMovieInfoVisible(true);
+    if (movieInfoTargetRef.current) {
+
+      movieInfoTargetRef.current.scrollIntoView({
+        behavior: 'smooth', 
+        block: 'start',
+      });
+    }
   }
 
   const toggleMovieInfo = () => {
@@ -141,25 +161,24 @@ const handleSortChange = (newSortBy: string) => {
       <section><button onClick={() => setIsModalOpen(true)}>Add Movie</button></section>
       
       {/* Add Movie Dialog */}
-      <Dialog title='Add Movie' isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Dialog title='Add Movie' isOpen={isModalOpen} onClose={handleCloseAddModal}>
         <MovieForm onSubmit={handleAddMovie} />
       </Dialog>
 
       {/* Edit Movie Dialog */}
-      <Dialog title='Edit Movie' isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+      <Dialog title='Edit Movie' isOpen={isEditModalOpen} onClose={handleCloseEditModal}>
         {editingMovie && <MovieForm movie={editingMovie} onSubmit={handleUpdateMovie} />}
       </Dialog>
 
      <span>SEARCH</span>
      <SearchForm initialQuery="" onSearch={onSearch} />
-     {selectedMovie && isMovieInfoVisible && <MovieInfo movie={selectedMovie} onClose={toggleMovieInfo} />}
+     {selectedMovie && isMovieInfoVisible && <MovieInfo ref={movieInfoTargetRef} movie={selectedMovie} onClose={toggleMovieInfo} />}
      <span>GENRES</span>
       <div>
         <GenresList genreList={['All', ...uniqueGenres]} selectedGenre={selectedGenre} onSelect={onSelect} />
         <SortMovies  handleSortChange={handleSortChange} />
       </div>
      <span><strong>{filteredMovies.length}</strong> movies found</span>
-     <span><strong>{sortedMovies.length}</strong> movies found</span>
      <MovieList onSelectMovie={selectMovie} movies={sortedMovies} oneEditMovie={onEditMovie} onDeleteMovie={onDeleteMovie} />
     </div>
     </>
