@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import type { Movie } from "../../types/Types";
 
 interface MovieFormProps {
@@ -6,63 +8,65 @@ interface MovieFormProps {
   onSubmit?: (movieData: Partial<Movie>) => void;
 }
 
-const MovieForm: React.FC<MovieFormProps> = ({ movie, onSubmit }) => {
-  const [formData, setFormData] = useState<Partial<Movie>>({
-    title: movie?.title || "",
-    release_date: movie?.release_date || "",
-    poster_path: movie?.poster_path || "",
-    overview: movie?.overview || "",
-    runtime: movie?.runtime || 0,
-    genres: movie?.genres || [],
-  });
+const validationSchema = Yup.object({
+  title: Yup.string()
+    .required('Title is required')
+    .min(2, 'Title must be at least 2 characters'),
+  release_date: Yup.string()
+    .required('Release date is required')
+    .matches(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  poster_path: Yup.string()
+    .required('Movie URL is required')
+    .url('Must be a valid URL'),
+  overview: Yup.string().required('Overview is required'),
+  runtime: Yup.number()
+    .min(0, 'Runtime must be positive')
+    .integer('Runtime must be a whole number'),
+  genres: Yup.array()
+    .of(Yup.string())
+    .min(1, 'At least one genre is required'),
+});
 
+const MovieForm: React.FC<MovieFormProps> = ({ movie, onSubmit }) => {
   const [genreInput, setGenreInput] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'runtime' ? Number(value) : value
-    }));
-  };
+  const formik = useFormik({
+    initialValues: {
+      title: movie?.title || "",
+      release_date: movie?.release_date || "",
+      poster_path: movie?.poster_path || "",
+      overview: movie?.overview || "",
+      runtime: movie?.runtime || 0,
+      genres: movie?.genres || [],
+    },
+    validationSchema,
+    onSubmit: (values) => {
+      console.log('Submitting form data:', values);
+      onSubmit?.(values);
+    },
+  });
 
   const handleAddGenre = () => {
-    if (genreInput.trim() && !formData.genres?.includes(genreInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        genres: [...(prev.genres || []), genreInput.trim()]
-      }));
+    if (genreInput.trim() && !formik.values.genres?.includes(genreInput.trim())) {
+      formik.setFieldValue('genres', [...(formik.values.genres || []), genreInput.trim()]);
       setGenreInput("");
     }
   };
 
   const handleRemoveGenre = (genreToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      genres: prev.genres?.filter(g => g !== genreToRemove) || []
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Submitting form data:', formData);
-    onSubmit(formData);
+    formik.setFieldValue(
+      'genres',
+      formik.values.genres?.filter(g => g !== genreToRemove) || []
+    );
   };
 
   const handleReset = () => {
-    setFormData({
-      title: "",
-      release_date: "",
-      poster_path: "",
-      overview: "",
-      runtime: 0,
-      genres: [],
-    });
+    formik.resetForm();
     setGenreInput("");
   };
 
   return (
-    <form onSubmit={handleSubmit} className="movie-form">
+    <form onSubmit={formik.handleSubmit} className="movie-form">
       <div>
       <div className="form-group">
         <label htmlFor="title">Title *</label>
@@ -70,11 +74,14 @@ const MovieForm: React.FC<MovieFormProps> = ({ movie, onSubmit }) => {
           type="text"
           id="title"
           name="title"
-          value={formData.title}
-          onChange={handleChange}
-          required
+          value={formik.values.title}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
           placeholder="Enter movie title"
         />
+        {formik.touched.title && formik.errors.title && (
+          <div className="error-message">{formik.errors.title}</div>
+        )}
       </div>
 
       <div className="form-group">
@@ -83,10 +90,13 @@ const MovieForm: React.FC<MovieFormProps> = ({ movie, onSubmit }) => {
           type="date"
           id="release_date"
           name="release_date"
-          value={formData.release_date}
-          onChange={handleChange}
-          required
+          value={formik.values.release_date}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
         />
+        {formik.touched.release_date && formik.errors.release_date && (
+          <div className="error-message">{formik.errors.release_date}</div>
+        )}
       </div>
 
       <div className="form-group">
@@ -95,23 +105,30 @@ const MovieForm: React.FC<MovieFormProps> = ({ movie, onSubmit }) => {
           type="url"
           id="poster_path"
           name="poster_path"
-          value={formData.poster_path}
-          onChange={handleChange}
-          required
+          value={formik.values.poster_path}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
           placeholder="https://example.com/poster.jpg"
         />
+        {formik.touched.poster_path && formik.errors.poster_path && (
+          <div className="error-message">{formik.errors.poster_path}</div>
+        )}
       </div>
 
       <div className="form-group">
-        <label htmlFor="overview">Overview</label>
+        <label htmlFor="overview">Overview *</label>
         <textarea
           id="overview"
           name="overview"
-          value={formData.overview}
-          onChange={handleChange}
+          value={formik.values.overview}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
           rows={4}
           placeholder="Enter movie overview"
         />
+        {formik.touched.overview && formik.errors.overview && (
+          <div className="error-message">{formik.errors.overview}</div>
+        )}
       </div>
 
       <div className="form-group">
@@ -120,15 +137,19 @@ const MovieForm: React.FC<MovieFormProps> = ({ movie, onSubmit }) => {
           type="number"
           id="runtime"
           name="runtime"
-          value={formData.runtime}
-          onChange={handleChange}
+          value={formik.values.runtime}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
           min="0"
           placeholder="0"
         />
+        {formik.touched.runtime && formik.errors.runtime && (
+          <div className="error-message">{formik.errors.runtime}</div>
+        )}
       </div>
 
       <div className="form-group">
-        <label htmlFor="genres">Genres</label>
+        <label htmlFor="genres">Genres *</label>
         <div className="genre-input-wrapper">
           <input
             type="text"
@@ -140,9 +161,12 @@ const MovieForm: React.FC<MovieFormProps> = ({ movie, onSubmit }) => {
           />
           <button type="button" onClick={handleAddGenre}>Add Genre</button>
         </div>
-        {formData.genres && formData.genres.length > 0 && (
+        {formik.touched.genres && formik.errors.genres && (
+          <div className="error-message">{formik.errors.genres}</div>
+        )}
+        {formik.values.genres && formik.values.genres.length > 0 && (
           <div className="genres-list">
-            {formData.genres.map((genre) => (
+            {formik.values.genres.map((genre) => (
               <span key={genre} className="genre-tag">
                 {genre}
                 <button type="button" onClick={() => handleRemoveGenre(genre)}>×</button>

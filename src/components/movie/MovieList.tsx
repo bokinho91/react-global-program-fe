@@ -1,7 +1,7 @@
 import React, {useState, useRef} from "react";
 import type { Movie } from "../../types/Types";
 import MovieCard from "./MovieCard";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import SearchForm from "../searchForm/SearchForm";
 
 
@@ -25,6 +25,13 @@ const MovieList: React.FC<MovieListProps> = (
     const navigate = useNavigate();
     const [isMovieInfoVisible, setIsMovieInfoVisible] = useState(false);
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+
+    const handleAddMovie = () => {
+      // Preserve search params when navigating to /new
+      const paramsString = searchParams.toString();
+      navigate(`/new${paramsString ? `?${paramsString}` : ''}`);
+    };
 
     const selectMovie = (movie: Movie) => {
     setSelectedMovie(movie);
@@ -47,8 +54,15 @@ const MovieList: React.FC<MovieListProps> = (
     }
   return (
     <>
-     {location.pathname === '/' && <><span>SEARCH</span>
-     <SearchForm initialQuery={initialQuery} onSearch={onSearch} /></>}
+     {location.pathname === '/' && (
+       <>
+         <span>SEARCH</span>
+         <SearchForm initialQuery={initialQuery} onSearch={onSearch} />
+         <section>
+           <button onClick={handleAddMovie}>+ Add Movie</button>
+         </section>
+       </>
+     )}
 
      <Outlet context={
       { selectedMovie, 

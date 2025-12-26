@@ -1,6 +1,6 @@
 
 import { useEffect, useState, useMemo, useCallback, } from 'react'
-import {  useSearchParams  } from 'react-router-dom'
+import {  useNavigate, useSearchParams  } from 'react-router-dom'
 import axios from 'axios'
 import './App.css'
 import Counter from './components/counter/Counter'
@@ -13,6 +13,7 @@ import Dialog from './components/dialog/Dialog'
 
 
 function App() {
+const navigate = useNavigate();
 const [searchParams, setSearchParams] = useSearchParams();
 
 const selectedGenre = searchParams.get('genre') || 'All';
@@ -109,8 +110,10 @@ useEffect(() => {
   }
 
   const onEditMovie = (movie: Movie) => {
+
+    navigate(`/${movie.id}/edit${searchParams.toString() ? `?${searchParams.toString()}` : ''}`);
     setEditingMovie(movie);
-    setIsEditModalOpen(true);
+    // setIsEditModalOpen(true);
   };
 
   const onDeleteMovie = (movie: Movie) => {
@@ -162,7 +165,7 @@ useEffect(() => {
      <Counter initialValue={0} />
 
      <div className="movie-app-container">
-      <section><button onClick={() => setIsModalOpen(true)}>Add Movie</button></section>
+      {/* <section><button onClick={() => setIsModalOpen(true)}>Add Movie</button></section> */}
       
       {/* Add Movie Dialog */}
       <Dialog title='Add Movie' isOpen={isModalOpen} onClose={handleCloseAddModal}>
