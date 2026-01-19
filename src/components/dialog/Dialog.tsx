@@ -4,7 +4,6 @@ import { IoMdClose } from "react-icons/io";
 
 
 const Dialog = React.memo<{ isOpen: boolean, onClose: () => void, title:string, children: React.ReactNode }>(({ isOpen, title, onClose, children }) => {
-  console.log("Dialog isOpen:", isOpen);
   if (!isOpen) return null;
 
   return (

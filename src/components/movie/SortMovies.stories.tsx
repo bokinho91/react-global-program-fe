@@ -6,7 +6,8 @@ const meta = {
   title: 'Components/Movie/SortMovies',
   component: SortMovies,
   args: {
-    handleSortChange: () => {},
+    sortBy: 'release_date',
+    handleSortChange: fn(),
   },
 } satisfies Meta<typeof SortMovies>;
 
@@ -16,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
+    sortBy: 'release_date',
     handleSortChange: fn(),
   },
   play: async ({ canvasElement, args }) => {
@@ -31,8 +33,25 @@ export const Default: Story = {
   },
 };
 
+export const SortByTitle: Story = {
+  args: {
+    sortBy: 'title',
+    handleSortChange: fn(),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const select = canvas.getByRole('combobox') as HTMLSelectElement;
+    
+    expect(select.value).toBe('title');
+    
+    const selectedOption = canvas.getByRole('option', { name: /Title/i }) as HTMLOptionElement;
+    expect(selectedOption.selected).toBe(true);
+  },
+};
+
 export const ChangeSortToTitle: Story = {
   args: {
+    sortBy: 'release_date',
     handleSortChange: fn(),
   },
   play: async ({ canvasElement, args }) => {
@@ -41,13 +60,9 @@ export const ChangeSortToTitle: Story = {
     const select = canvas.getByRole('combobox');
     
     await user.selectOptions(select, 'title');
-    await user.selectOptions(select, 'release_date');
-    await user.selectOptions(select, 'title');
     
     expect(args.handleSortChange).toHaveBeenCalledWith('title');
-    expect(args.handleSortChange).toHaveBeenCalledTimes(3);
-    
-    expect((select as HTMLSelectElement).value).toBe('title');
+    expect(args.handleSortChange).toHaveBeenCalledTimes(1);
   },
 };
 

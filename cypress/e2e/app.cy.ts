@@ -44,8 +44,13 @@ describe('Movie App E2E Tests', () => {
     // Wait for movies to load
     cy.contains('movies found', { timeout: 10000 }).should('be.visible');
 
+
+    // Wait for movies to load from API
+    cy.intercept('GET', 'http://localhost:4000/movies*').as('getMovies');
+    cy.wait('@getMovies');
+
     // Get initial movie count
-    cy.contains('movies found').invoke('text').then((text) => {
+    cy.get('[data-testid="movie-count"]').invoke('text').then((text) => {
       cy.log('Initial movies found text:', text);
       const initialCount = parseInt(text.match(/\d+/)?.[0] || '0');
       expect(initialCount).to.be.above(0);
@@ -83,19 +88,15 @@ describe('Movie App E2E Tests', () => {
     cy.contains('movies found').invoke('text').then((initialText) => {
       const initialCount = parseInt(initialText.match(/\d+/)?.[0] || '0');
 
-      // Wait for genre buttons to appear (excluding All button)
-      cy.get('button').contains("Romance").first().then(($genreButton) => {
-        const genreName = $genreButton.text();
-        cy.log('Testing genre:', genreName);
-        // Click on a genre
-        cy.wrap($genreButton).click();
+      // Wait for a genre you know exists in your data
+      cy.contains('button', 'Romance', { timeout: 10000 }).should('be.visible');
 
-        // Verify filtered movie count changed
-        cy.contains('movies found').invoke('text').then((filteredText) => {
-          const filteredCount = parseInt(filteredText.match(/\d+/)?.[0] || '0');
-          expect(filteredCount).to.be.below(initialCount);
-        });
-      });
+      cy.contains('button', 'Romance').click();
+
+      cy.wait(1000); // Wait for API and render
+
+      // Check that at least one movie card contains "Romance" in its genres
+      cy.get('.movie-card').first().should('contain', 'Romance');
     });
   });
 
@@ -109,6 +110,7 @@ describe('Movie App E2E Tests', () => {
 
       // Click on a specific genre (not All)
       cy.get('button').contains(/^(?!All$)/).first().click();
+      cy.get('button').contains(/^(?!Drama$)/).first().click();
 
       // Wait for filter to apply
       cy.wait(500);

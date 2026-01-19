@@ -15,6 +15,7 @@ const Genre: React.FC<GenreProps> = ({genre, selectedGenre, onSelect}) => {
             <button
               onClick={() => onSelect(genre)}
               style={genre===selectedGenre ? { backgroundColor:"red"} : {}}
+              className={`genre-button ${genre === selectedGenre ? ' active' : ''}`}
             >
               {genre}
             </button>

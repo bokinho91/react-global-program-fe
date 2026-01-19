@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
 
-const SortMovies: React.FC<{ handleSortChange: (newSortBy: string) => void }> = ({ handleSortChange }) => {
-  const [sortBy, setSortBy] = useState<string>('release_date');
-  
+interface SortMoviesProps {
+  sortBy: string;
+  handleSortChange: (newSortBy: string) => void;
+}
+
+const SortMovies: React.FC<SortMoviesProps> = ({ sortBy, handleSortChange }) => {
   return (
     <div>
         <label htmlFor="sort-select">Sort BY:</label>
         <select 
           id="sort-select"
           value={sortBy} 
-          onChange={(e) => { handleSortChange(e.target.value); setSortBy(e.target.value); }}
+          onChange={(e) => handleSortChange(e.target.value)}
         >
           <option value="release_date">Release Date</option>
           <option value="title">Title</option>

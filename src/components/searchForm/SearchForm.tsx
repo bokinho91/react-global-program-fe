@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 
 interface SearchFormProps {
   initialQuery: string
@@ -7,6 +7,10 @@ interface SearchFormProps {
 
 const SearchForm: React.FC<SearchFormProps> = ({ initialQuery, onSearch }) => {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
+
+  useEffect(() => {
+    setSearchQuery(initialQuery);
+  }, [initialQuery]);
 
   const handleSearch = () => {
     onSearch(searchQuery)

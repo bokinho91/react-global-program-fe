@@ -1,29 +1,32 @@
 
-import { useEffect, useState, useMemo, useCallback, useRef} from 'react'
+import { useEffect, useState, useMemo, useCallback, } from 'react'
+import {  useNavigate, useSearchParams  } from 'react-router-dom'
 import axios from 'axios'
 import './App.css'
 import Counter from './components/counter/Counter'
-import SearchForm from './components/searchForm/SearchForm'
 import type { Movie, MoviesResponse } from './types/Types'
 import GenresList from './components/genres/GenresList'
 import MovieList from './components/movie/MovieList'
-import MovieInfo from './components/movie/MovieInfo'
 import SortMovies from './components/movie/SortMovies'
 import MovieForm from './components/movieForm/MovieForm'
 import Dialog from './components/dialog/Dialog'
 
+
 function App() {
-const [selectedGenre, setSelectedGenre] = useState<string>('All');
+const navigate = useNavigate();
+const [searchParams, setSearchParams] = useSearchParams();
+
+const selectedGenre = searchParams.get('genre') || 'All';
+const sortBy = searchParams.get('sortBy') || 'release_date';
+const searchedQuery = searchParams.get('query') || '';
+
 const [uniqueGenres, setUniqueGenres] = useState<string[]>([]);
 const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
-const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-const [isMovieInfoVisible, setIsMovieInfoVisible] = useState<boolean>(false);
-const [sortBy, setSortBy] = useState<string>('release_date');
 const [isModalOpen, setIsModalOpen] = useState(false);
 const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
 const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-const [searchedQuery, setSearchedQuery] = useState<string>("");
-const movieInfoTargetRef = useRef<HTMLDivElement>(null);
+
+
 
 function sortMovies(movies: Movie[], sortBy: string): Movie[] {
 const sorted = [...movies];
@@ -66,7 +69,7 @@ useEffect(() => {
     setFilteredMovies(movies)
   }
   fetchMovies();
-    }, [searchedQuery,sortBy, selectedGenre])
+    }, [searchedQuery, sortBy, selectedGenre])
     
   useEffect(() => {
     const fetchGenres = async () => {
@@ -83,18 +86,34 @@ useEffect(() => {
     return sortMovies(filteredMovies, sortBy);
   }, [filteredMovies, sortBy]);
 
-  const onSelect = (selectedGenre: string) => {
-    setSelectedGenre(selectedGenre);
-    console.log("Selected genre:", selectedGenre);
+  const onSelect = (newGenre: string) => {
+    setSearchParams(params => {
+      if (newGenre === 'All') {
+        params.delete('genre');
+      } else {
+        params.set('genre', newGenre);
+      }
+      return params;
+    });
+    console.log("Selected genre:", newGenre);
   } 
 
   const onSearch = async(query: string) => {
-    setSearchedQuery(query);
+    setSearchParams(params => {
+      if (query) {
+        params.set('query', query);
+      } else {
+        params.delete('query');
+      }
+      return params;
+    });
   }
 
   const onEditMovie = (movie: Movie) => {
+
+    navigate(`/${movie.id}/edit${searchParams.toString() ? `?${searchParams.toString()}` : ''}`);
     setEditingMovie(movie);
-    setIsEditModalOpen(true);
+    // setIsEditModalOpen(true);
   };
 
   const onDeleteMovie = (movie: Movie) => {
@@ -130,25 +149,13 @@ useEffect(() => {
     setIsEditModalOpen(false);
   }, []);
 
-  const selectMovie = (movie: Movie) => {
-    setSelectedMovie(movie);
-    setIsMovieInfoVisible(true);
-    if (movieInfoTargetRef.current) {
 
-      movieInfoTargetRef.current.scrollIntoView({
-        behavior: 'smooth', 
-        block: 'start',
-      });
-    }
+  const handleSortChange = (newSortBy: string) => {
+    setSearchParams(params => {
+      params.set('sortBy', newSortBy);
+      return params;
+    });
   }
-
-  const toggleMovieInfo = () => {
-    setIsMovieInfoVisible(!isMovieInfoVisible);
-  }
-
-const handleSortChange = (newSortBy: string) => {
-  setSortBy(newSortBy);
-}
 
 
 
@@ -158,7 +165,7 @@ const handleSortChange = (newSortBy: string) => {
      <Counter initialValue={0} />
 
      <div className="movie-app-container">
-      <section><button onClick={() => setIsModalOpen(true)}>Add Movie</button></section>
+      {/* <section><button onClick={() => setIsModalOpen(true)}>Add Movie</button></section> */}
       
       {/* Add Movie Dialog */}
       <Dialog title='Add Movie' isOpen={isModalOpen} onClose={handleCloseAddModal}>
@@ -170,16 +177,20 @@ const handleSortChange = (newSortBy: string) => {
         {editingMovie && <MovieForm movie={editingMovie} onSubmit={handleUpdateMovie} />}
       </Dialog>
 
-     <span>SEARCH</span>
-     <SearchForm initialQuery="" onSearch={onSearch} />
-     {selectedMovie && isMovieInfoVisible && <MovieInfo ref={movieInfoTargetRef} movie={selectedMovie} onClose={toggleMovieInfo} />}
+    
+
      <span>GENRES</span>
       <div>
         <GenresList genreList={['All', ...uniqueGenres]} selectedGenre={selectedGenre} onSelect={onSelect} />
-        <SortMovies  handleSortChange={handleSortChange} />
+        <SortMovies sortBy={sortBy} handleSortChange={handleSortChange} />
       </div>
-     <span><strong>{filteredMovies.length}</strong> movies found</span>
-     <MovieList onSelectMovie={selectMovie} movies={sortedMovies} oneEditMovie={onEditMovie} onDeleteMovie={onDeleteMovie} />
+     <span data-testid="movie-count"><strong>{filteredMovies.length}</strong> movies found</span>
+     <MovieList 
+      movies={sortedMovies} 
+      oneEditMovie={onEditMovie} 
+      onDeleteMovie={onDeleteMovie} 
+      initialQuery={searchedQuery} 
+      onSearch={onSearch} />
     </div>
     </>
   )
