@@ -85,9 +85,7 @@ describe('Movie App E2E Tests', () => {
     cy.contains('button', "All").should('have.css', 'background-color', 'rgb(255, 0, 0)');
 
     // Get initial movie count
-    cy.contains('movies found').invoke('text').then((initialText) => {
-      const initialCount = parseInt(initialText.match(/\d+/)?.[0] || '0');
-
+    cy.contains('movies found').invoke('text').then(() => {
       // Wait for a genre you know exists in your data
       cy.contains('button', 'Romance', { timeout: 10000 }).should('be.visible');
 

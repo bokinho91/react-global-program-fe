@@ -2,7 +2,7 @@ import type { Movie } from "../../types/Types";
 import React from "react";
 import { IoMdClose } from "react-icons/io";
 import ImageWithFallback from "../../utilities/ImageWithFallback";
-import { useLoaderData, useOutletContext, useNavigate, type LoaderFunctionArgs } from "react-router-dom";
+import { useLoaderData, useOutletContext, useNavigate } from "react-router-dom";
 
 interface OutletContext {
   toggleMovieInfo: () => void;
@@ -53,15 +53,3 @@ const MovieInfo: React.FC = () => {
 };
 
 export default MovieInfo;
-
-export const loadMovieInfo = ({ params }: LoaderFunctionArgs): Promise<Movie> => {
-  const movieId = params.movieId as string;
-  return fetch(`http://localhost:4000/movies/${movieId}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then((data: Movie) => data);
-}

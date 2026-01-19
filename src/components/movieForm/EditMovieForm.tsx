@@ -1,5 +1,5 @@
 
-import { useLoaderData, useNavigate, useSearchParams, type LoaderFunctionArgs } from 'react-router-dom';
+import { useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import Dialog from '../dialog/Dialog';
 import MovieForm from './MovieForm';
@@ -40,16 +40,3 @@ const EditMovieForm = () => {
 };
 
 export default EditMovieForm;
-
-
-export const loadMovieToEdit = ({ params }: LoaderFunctionArgs): Promise<Movie> => {
-  const movieId = params.movieId as string;
-  return fetch(`http://localhost:4000/movies/${movieId}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then((data: Movie) => data);
-}

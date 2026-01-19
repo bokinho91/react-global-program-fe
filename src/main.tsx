@@ -3,9 +3,11 @@ import { createRoot } from 'react-dom/client'
 import {  createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
-import MovieInfo, { loadMovieInfo } from './components/movie/MovieInfo.tsx'
+import MovieInfo from './components/movie/MovieInfo.tsx'
+import { loadMovieInfo } from './components/movie/movieLoader.ts'
 import AddMovieForm from './components/movieForm/AddMovieForm.tsx'
-import EditMovieForm, { loadMovieToEdit } from './components/movieForm/EditMovieForm.tsx'
+import EditMovieForm from './components/movieForm/EditMovieForm.tsx'
+import { loadMovieToEdit } from './components/movieForm/movieFormLoader.ts'
 
 const router = createBrowserRouter([
   {
